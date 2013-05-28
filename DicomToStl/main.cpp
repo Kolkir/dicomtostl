@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
                 SlicesPositions slicesPositions;
                 ReadFormatDcmFiles(files, logger, dx, dy, spacing, slicesPositions);
 
-                double time = EstimateProcessingTime(dx, dy, spacing, slicesPositions, isoLevel, fileName, logger);
+                double time = EstimateProcessingTime(dx, dy, spacing, slicesPositions, isoLevel, fileName, binaryStl, logger);
                 size_t hours(0);
                 size_t minutes(0);
                 size_t seconds(0);

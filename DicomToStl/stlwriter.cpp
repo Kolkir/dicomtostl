@@ -42,6 +42,7 @@ StlWriter::StlWriter(const std::string& fileName, bool binary)
 
 StlWriter::~StlWriter()
 {
+    file.flush();
     if (!this->isBinary)
     {
         file << "endsolid\n";
@@ -61,18 +62,17 @@ StlWriter::~StlWriter()
 
             while (triFile.read(buffer.data(), COPY_BUF_SIZE))
             {
-                 file.write(buffer.data(), triFile.gcount());
+                file.write(buffer.data(), triFile.gcount());
             }
             if (triFile.gcount() > 0)
             {
                 file.write(buffer.data(), triFile.gcount());
             }
         }
-
-        DeleteFile(fileName.c_str());
+        file.close();
+        DeleteFile((fileName + "b").c_str());
     }
 }
-
 
 void StlWriter::Write(const Triangle& tri)
 {

@@ -182,24 +182,26 @@ public:
     {}
     virtual void run()
     {
-        bool done = false;
-        StlWriter stlWriter(fileName, binaryStl);
-        while (!done)
         {
-            auto cells = Concurrency::receive(this->filledCells);
-            if (cells != nullptr)
+            StlWriter stlWriter(fileName, binaryStl);
+            bool done = false;
+            while (!done)
             {
-                std::for_each(cells->begin(), cells->end(),
-                [&](const GridCell& cell)
+                auto cells = Concurrency::receive(this->filledCells);
+                if (cells != nullptr)
                 {
-                    TriangulateGridCell(cell, isoLevel, stlWriter);
-                });
+                    std::for_each(cells->begin(), cells->end(),
+                    [&](const GridCell& cell)
+                    {
+                        TriangulateGridCell(cell, isoLevel, stlWriter);
+                    });
 
-                Concurrency::send(this->freeCells, cells);
-            }
-            else
-            {
-                 done = true;
+                    Concurrency::send(this->freeCells, cells);
+                }
+                else
+                {
+                     done = true;
+                }
             }
         }
         this->done();
@@ -392,6 +394,7 @@ double EstimateProcessingTime(int dx,
                               const SlicesPositions& slicesPositions, 
                               int isoLevel,
                               const std::string& fileName,
+                              bool binaryStl,
                               OFLogger& logger)
 {
     OFLOG_INFO(logger, "Start time estimation ..." << OFendl);
@@ -411,27 +414,32 @@ double EstimateProcessingTime(int dx,
     LogAgent logAgent(logger);
     logAgent.Start();
 
-    StlWriter stlWriter(fileName);
-
-    int z = 0;
-    if (ReadDcmFile(i->first, topSlice, logAgent) &&
-        ReadDcmFile(n->first, bottomSlice, logAgent))
+    double time = 0;
     {
-        BuildGridCells(cells, dx, z * spacing.z, (z + 1) * spacing.z, 
-                        spacing,
-                        topSlice, bottomSlice);
-        std::for_each(cells.begin(), cells.end(),
-            [&](const GridCell& cell)
+        StlWriter stlWriter(fileName, binaryStl);
+
+        int z = 0;
+        if (ReadDcmFile(i->first, topSlice, logAgent) &&
+            ReadDcmFile(n->first, bottomSlice, logAgent))
         {
-            TriangulateGridCell(cell, isoLevel, stlWriter);
-        });
+            BuildGridCells(cells, dx, z * spacing.z, (z + 1) * spacing.z, 
+                            spacing,
+                            topSlice, bottomSlice);
+            std::for_each(cells.begin(), cells.end(),
+                [&](const GridCell& cell)
+            {
+                TriangulateGridCell(cell, isoLevel, stlWriter);
+            });
+        }
+
+        logAgent.Stop();
+
+        double time = timer.End();
+
+        time = time * (slicesPositions.size() / 2);
     }
 
-    logAgent.Stop();
-
-    double time = timer.End();
-
-    time = time * (slicesPositions.size() / 2);
+    ::DeleteFile(fileName.c_str());
 
     return time;
 }

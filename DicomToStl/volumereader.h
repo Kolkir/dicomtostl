@@ -29,6 +29,7 @@ double EstimateProcessingTime(int dx,
                               const SlicesPositions& slicesPositions, 
                               int isoLevel,
                               const std::string& fileName,
+                              bool binaryStl,
                               OFLogger& logger);
 }
 
