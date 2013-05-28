@@ -66,6 +66,7 @@ public:
    
         MsgImgBuf::type buffers;
 
+        bool skipFailedFiles = false;
         for(;n != e; ++i, ++n)
         {
             if (needBreak())
@@ -73,12 +74,20 @@ public:
                 break;
             }
 
-            buffers = Concurrency::receive(this->freeBuffers);
+            if (!skipFailedFiles)
+            {
+                buffers = Concurrency::receive(this->freeBuffers);
+            }
 
             if (ReadDcmFile(i->first, *buffers.first, logAgent) &&
                 ReadDcmFile(n->first, *buffers.second, logAgent))
             {
                 Concurrency::send(this->filledBuffers, buffers);
+                skipFailedFiles = false;
+            }
+            else
+            {
+                skipFailedFiles = true;
             }
         }
         buffers.first = nullptr;
@@ -234,6 +243,18 @@ bool ReadDcmFile(const string& fileName, vector<int>& buffer, LogAgent& logAgent
             {
                 std::copy(static_cast<const short*>(pixelData->getData()), 
                          static_cast<const short*>(pixelData->getData()) + pixelData->getCount(), 
+                         buffer.begin());
+            }
+            else if (pixelData->getRepresentation() == EPR_Uint8 || pixelData->getRepresentation() == EPR_MinUnsigned)
+            {
+                std::copy(static_cast<const unsigned char*>(pixelData->getData()), 
+                         static_cast<const unsigned char*>(pixelData->getData()) + pixelData->getCount(), 
+                         buffer.begin());
+            }
+            else if (pixelData->getRepresentation() == EPR_Sint8 || pixelData->getRepresentation() == EPR_MinSigned)
+            {
+                std::copy(static_cast<const char*>(pixelData->getData()), 
+                         static_cast<const char*>(pixelData->getData()) + pixelData->getCount(), 
                          buffer.begin());
             }
             else
