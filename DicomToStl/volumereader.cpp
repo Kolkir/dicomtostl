@@ -434,7 +434,7 @@ double EstimateProcessingTime(int dx,
 
         logAgent.Stop();
 
-        double time = timer.End();
+        time = timer.End();
 
         time = time * (slicesPositions.size() / 2);
     }
