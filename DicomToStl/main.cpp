@@ -32,6 +32,8 @@ int main(int argc, char* argv[])
         cmd.addParam("stldir-out", "STL output directory");
 
         cmd.addOption("--isolevel", "-il",  1, "Edge value to build iso surface", "Signed integer value");
+        cmd.addOption("--stlbinary", "-sbin", "Generate binary STL file");
+
         cmd.addGroup("general options:", LONGCOL, SHORTCOL + 2);
         cmd.addOption("--help", "-h", "print this help text and exit", OFCommandLine::AF_Exclusive);
         
@@ -54,6 +56,11 @@ int main(int argc, char* argv[])
                 std::stringstream buf;
                 buf << isoLevelStr;
                 buf >> isoLevel;
+            }
+            bool binaryStl = false;
+            if (cmd.findOption("--stlbinary"))
+            { 
+                binaryStl = true;
             }
 
             std::string outDir = stldir;
@@ -96,7 +103,7 @@ int main(int argc, char* argv[])
                 }
 
                 OFLOG_INFO(logger, "Start parsing DICOM files ..." << OFendl);
-                ReadVolumeFromDcmFiles(dx, dy, spacing, slicesPositions, isoLevel, fileName, logger, std::bind(NeedBreak, handleIn, logger));
+                ReadVolumeFromDcmFiles(dx, dy, spacing, slicesPositions, isoLevel, fileName, binaryStl, logger, std::bind(NeedBreak, handleIn, logger));
             }
             else
             {

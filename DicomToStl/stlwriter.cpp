@@ -69,7 +69,7 @@ StlWriter::~StlWriter()
             }
         }
 
-        DeleteFile((fileName + "b").c_str());
+        DeleteFile(fileName.c_str());
     }
 }
 

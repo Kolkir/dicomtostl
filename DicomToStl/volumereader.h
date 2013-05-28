@@ -18,7 +18,8 @@ void ReadVolumeFromDcmFiles(int dx,
                             const Vec3& spacing,
                             const SlicesPositions& slicesPositions, 
                             int isoLevel, 
-                            const std::string& fileName, 
+                            const std::string& fileName,
+                            bool binaryStl,
                             OFLogger& logger, 
                             std::function<bool (void)> needBreak);
 

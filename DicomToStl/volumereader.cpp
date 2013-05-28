@@ -172,16 +172,18 @@ public:
     TriangulateAgent(MsgCellsBuf& freeCells,
                      MsgCellsBuf& filledCells,
                      int isoLevel,
-                     std::string fileName)
+                     std::string fileName,
+                     bool binaryStl)
         : freeCells(freeCells),
           filledCells(filledCells),
           isoLevel(isoLevel),
-          fileName(fileName)
+          fileName(fileName),
+          binaryStl(binaryStl)
     {}
     virtual void run()
     {
         bool done = false;
-        StlWriter stlWriter(fileName, true);
+        StlWriter stlWriter(fileName, binaryStl);
         while (!done)
         {
             auto cells = Concurrency::receive(this->filledCells);
@@ -210,6 +212,7 @@ private:
     MsgCellsBuf& filledCells;
     int isoLevel;
     std::string fileName;
+    bool binaryStl;
 };
 
 bool ReadDcmFile(const string& fileName, vector<int>& buffer, LogAgent& logAgent)
@@ -339,6 +342,7 @@ void ReadVolumeFromDcmFiles(int dx,
                             const SlicesPositions& slicesPositions, 
                             int isoLevel, 
                             const std::string& fileName, 
+                            bool binaryStl,
                             OFLogger& logger, 
                             std::function<bool (void)> needBreak)
 {
@@ -364,7 +368,7 @@ void ReadVolumeFromDcmFiles(int dx,
 
     FileReadAgent frAgent(needBreak, slicesPositions, freeBuffers, filledBuffers, logAgent);
     BuildGridAgent bgAgent(freeBuffers, filledBuffers, freeCells, filledCells, dx, spacing);
-    TriangulateAgent trAgent(freeCells, filledCells, isoLevel, fileName);
+    TriangulateAgent trAgent(freeCells, filledCells, isoLevel, fileName, binaryStl);
 
     Concurrency::send(freeBuffers, make_pair(&topSlice1, &bottomSlice1));
     Concurrency::send(freeBuffers, make_pair(&topSlice2, &bottomSlice2));
