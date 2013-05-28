@@ -10,9 +10,6 @@ using namespace std;
 namespace DicomToStl
 {
 
-namespace
-{
-
 bool IsDICOMDIR(std::string dirName)
 {
     std::transform(dirName.begin(), dirName.end(), dirName.begin(), ::tolower);
@@ -58,7 +55,69 @@ void GetFileNamesFromOSDir(const std::string& dirName, FileNames& files)
     while (FindNextFile(hFind, &ffd) != 0);
 }
 
-void GetFileNamesFromDICOMDIR(const std::string& fileName, FileNames& files)
+void GetStudiesPairsFromDir(const std::string& dirName, StudyPairs& pairs)
+{
+    DcmDicomDir dcmDicomDir(dirName.c_str());
+    DcmDirectoryRecord& root = dcmDicomDir.getRootRecord();
+    OFCondition status;
+    DcmDirectoryRecord* StudyRecord = NULL;
+    DcmDirectoryRecord* PatientRecord = NULL;
+    DcmDirectoryRecord* SeriesRecord = NULL;
+    OFString tmpString;
+ 
+    pairs.clear();
+    // Analyze DICOMDIR
+    while ((PatientRecord = root.nextSub(PatientRecord)) != NULL) 
+    {
+        while ((StudyRecord = PatientRecord->nextSub(StudyRecord)) != NULL) 
+        {
+            StudyPair studyPair;
+
+            StudyRecord->findAndGetOFString(DCM_StudyID, tmpString);
+            studyPair.StudyID = tmpString.c_str();
+
+            /*
+            StudyRecord->findAndGetOFString(DCM_StudyDescription, tmpString);
+            studyPair.Description += tmpString.c_str();
+            studyPair.Description += " ; ";
+
+            StudyRecord->findAndGetOFString(DCM_StudyDate, tmpString);
+            studyPair.Description += tmpString.c_str();
+            studyPair.Description += " ; ";
+
+            StudyRecord->findAndGetOFString(DCM_StudyTime, tmpString);
+            studyPair.Description += tmpString.c_str();
+            studyPair.Description += " ; ";
+            */
+
+
+            // Read all series and filter according to SeriesInstanceUID
+            while ((SeriesRecord = StudyRecord->nextSub(SeriesRecord)) != NULL) 
+            {
+                SeriesRecord->findAndGetOFString(DCM_SeriesNumber, tmpString);
+                studyPair.SeriesNumber = tmpString.c_str();
+
+                /*
+                SeriesRecord->findAndGetOFString(DCM_SeriesDescription, tmpString);
+                studyPair.Description += tmpString.c_str();
+                studyPair.Description += " ; ";
+                
+                SeriesRecord->findAndGetOFString(DCM_SeriesDate, tmpString);
+                studyPair.Description += tmpString.c_str();
+                studyPair.Description += " ; ";
+                
+                SeriesRecord->findAndGetOFString(DCM_SeriesTime, tmpString);
+                studyPair.Description += tmpString.c_str();
+                studyPair.Description += " ; ";  
+                */
+
+                pairs.push_back(studyPair);
+            }
+        }
+    }
+}
+
+void GetFileNamesFromDICOMDIR(const std::string& fileName, const StudyPair& pair, FileNames& files)
 {
     string dir = fileName.substr(0, fileName.length() - string("DICOMDIR").length());
 
@@ -76,38 +135,29 @@ void GetFileNamesFromDICOMDIR(const std::string& fileName, FileNames& files)
     {
         while ((StudyRecord = PatientRecord->nextSub(StudyRecord)) != NULL) 
         {
-            // Read all series and filter according to SeriesInstanceUID
-            while ((SeriesRecord = StudyRecord->nextSub(SeriesRecord)) != NULL) 
+            StudyRecord->findAndGetOFString(DCM_StudyID, tmpString);
+            if (pair.StudyID == tmpString.c_str())
             {
-                while ((FileRecord = SeriesRecord->nextSub(FileRecord)) != NULL) 
+                // Read all series and filter according to SeriesInstanceUID
+                while ((SeriesRecord = StudyRecord->nextSub(SeriesRecord)) != NULL) 
                 {
-                    char *referencedFileID=NULL;
-                    if (FileRecord->findAndGetOFStringArray(DCM_ReferencedFileID, tmpString).good())
+                    SeriesRecord->findAndGetOFString(DCM_SeriesNumber, tmpString);
+                    if (pair.SeriesNumber == tmpString.c_str())
                     {
-                        referencedFileID = const_cast<char*>(tmpString.c_str());
+                        while ((FileRecord = SeriesRecord->nextSub(FileRecord)) != NULL) 
+                        {
+                            const char *referencedFileID = NULL;
+                            if (FileRecord->findAndGetOFStringArray(DCM_ReferencedFileID, tmpString).good())
+                            {
+                                referencedFileID = tmpString.c_str();
+                            }
+                            files.push_back(dir + referencedFileID);
+                        }
                     }
-                    files.push_back(dir + referencedFileID);
                 }
             }
         }
     }
-}
-}
-
-FileNames GetFileNamesFromDir(const std::string& dirName)
-{
-    FileNames files;
-
-    if (IsDICOMDIR(dirName))
-    {
-        GetFileNamesFromDICOMDIR(dirName, files);
-    }
-    else
-    {
-        GetFileNamesFromOSDir(dirName, files);
-    }
-
-    return files;
 }
 
 }

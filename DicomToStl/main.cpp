@@ -69,7 +69,35 @@ int main(int argc, char* argv[])
                 outDir += "\\";
             }
 
-            FileNames files = GetFileNamesFromDir(dcmdir);
+            FileNames files;
+
+            if (IsDICOMDIR(dcmdir))
+            {
+                StudyPairs studyPairs;
+                GetStudiesPairsFromDir(dcmdir, studyPairs);
+                int pairIndex = -1;
+
+                auto i = studyPairs.begin();
+                auto e = studyPairs.end();
+                int index = 0;
+                std::cout << "\n";
+                for (;i != e; ++i, ++index)
+                {
+                    std::cout << index << ". " << i->StudyID << "-" << i->SeriesNumber << "\n";
+                }
+                std::cout << "\nEnter a number of the item to analyze :\n";
+                std::cin >> pairIndex;
+
+                if (pairIndex >= 0 && pairIndex < static_cast<int>(studyPairs.size()))
+                {
+                    GetFileNamesFromDICOMDIR(dcmdir, studyPairs[pairIndex], files);
+                }
+            }
+            else
+            {
+                GetFileNamesFromOSDir(dcmdir, files);
+            }
+
             if (!files.empty())
             {
                 auto posStart = files[0].find_last_of('\\') + 1;
