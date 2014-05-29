@@ -2,6 +2,9 @@
 #include "logagent.h"
 #include "stlwriter.h"
 
+#include <ppl.h>
+#include <agents.h>
+
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmimgle/dcmimage.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
@@ -10,9 +13,6 @@
 
 #include <algorithm>
 #include <memory>
-
-#include <ppl.h>
-#include <agents.h>
 
 #include "timer.h"
 
