@@ -113,6 +113,12 @@ int main(int argc, char* argv[])
                 SlicesPositions slicesPositions;
                 ReadFormatDcmFiles(files, logger, dx, dy, spacing, slicesPositions);
 
+                if (slicesPositions.size() < 2)
+                {
+                    OFLOG_ERROR(logger, "There is not enough slices < " << slicesPositions.size() << " >  to recover a 3D model!" << OFendl);
+                    return -1;
+                }
+
                 double time = EstimateProcessingTime(dx, dy, spacing, slicesPositions, isoLevel, fileName, binaryStl, logger);
                 size_t hours(0);
                 size_t minutes(0);

@@ -8,6 +8,7 @@
 #include <dcmtk/dcmdata/dcfilefo.h>
 #include <dcmtk/dcmimgle/dcmimage.h>
 #include <dcmtk/dcmdata/dcdeftag.h>
+#include <dcmtk/dcmimage/diregist.h>
 
 #include "vec3.h"
 
@@ -403,7 +404,16 @@ double EstimateProcessingTime(int dx,
     timer.Start();
 
     auto i = slicesPositions.begin();
+    if (i == slicesPositions.end())
+    {
+        return 0.;
+    }
     auto n = next(i);
+    if (n == slicesPositions.end())
+    {
+        return 0.;
+    }
+
 
     size_t bufLen = dx * dy;
     ImgBuf topSlice(bufLen);
