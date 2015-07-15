@@ -26,4 +26,4 @@ file(GLOB SRC_FILES src/*
 )
 
 add_executable(dicomtostl ${SRC_FILES})
-target_link_libraries(dicomtostl dcmdata dcmimgle ofstd oflog ws2_32 netapi32)
+target_link_libraries(dicomtostl dcmdata dcmimgle dcmimage ofstd oflog ws2_32 netapi32)
