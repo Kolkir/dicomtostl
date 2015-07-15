@@ -6,6 +6,8 @@
 #include "formatreader.h"
 using namespace DicomToStl;
 
+#include <Windows.h>
+
 #include <iostream>
 #include <functional>
 
