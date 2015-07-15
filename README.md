@@ -17,3 +17,5 @@ Optional paremeters:
 Example command:
 
 dicomtostl.exe -sbin -v -il 100 D:\dicom\BRAIN\DICOMDIR D:\dicom\BRAIN_stl
+
+**Only Windows platform is supported**
