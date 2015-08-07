@@ -2,7 +2,7 @@ Create 3D volume from series of scan images.
 
 To create 3D volume you should specify:
 
-1. Path to DICOMDIR file in your DICOM folder(usually something like SOME_SCAN/DICOMDIR)
+1. Path to DICOMDIR file in your DICOM folder(usually something like SOME_SCAN/DICOMDIR). Or just path to the top level folder containing .dcm files, where each dcm contatins one slice.
 
 2. Output folder
 
